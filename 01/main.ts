@@ -12,7 +12,7 @@ const textToDigit = {
   nine: 9
 }
 
-export function parseToNumber(original: string): number {
+function parseToNumber(original: string): number {
   const digit = Number(original);
   if (digit) {
     return digit;
@@ -27,7 +27,7 @@ export function parseToNumber(original: string): number {
   )
 }
 
-async function getCalibrationSum(digitPattern, inputRows: string[]) {
+function getCalibrationSum(digitPattern: RegExp, inputRows: string[]) {
   const calibrationValues = inputRows.map((inputRow) => {
     const inputDigits = [...inputRow.matchAll(digitPattern)];
     const first = inputDigits[0][1]
@@ -43,7 +43,7 @@ const file = Bun.file('input');
 const text = await file.text();
 const inputRows = text.split('\n');
 
-console.log(await getCalibrationSum(patternOne, inputRows)); // 55607
-console.log(await getCalibrationSum(patternTwo, inputRows)); // 55291?
+console.log(getCalibrationSum(patternOne, inputRows)); // 55607
+console.log(getCalibrationSum(patternTwo, inputRows)); // 55291?
 
 export {}

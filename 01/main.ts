@@ -44,6 +44,6 @@ const text = await file.text();
 const inputRows = text.split('\n');
 
 console.log(getCalibrationSum(patternOne, inputRows)); // 55607
-console.log(getCalibrationSum(patternTwo, inputRows)); // 55291?
+console.log(getCalibrationSum(patternTwo, inputRows)); // 55291
 
 export {}

@@ -8,8 +8,9 @@ import (
 )
 
 var (
-	entryRegex = regexp.MustCompile(`mul\([0-9]{1,3},[0-9]{1,3}\)`)
-	termsRegex = regexp.MustCompile(`[0-9]{1,3}`)
+	entryRegex           = regexp.MustCompile(`mul\([0-9]{1,3},[0-9]{1,3}\)`)
+	termsRegex           = regexp.MustCompile(`[0-9]{1,3}`)
+	activeSubStringRegex = regexp.MustCompile(`(do\(\)|^)[\s\S]*?(don't\(\)|$)`)
 )
 
 func calculateEntry(entry []byte) (int, error) {
@@ -32,7 +33,7 @@ func calculateEntry(entry []byte) (int, error) {
 	return termOne * termTwo, nil
 }
 
-func multiplyNumbers(input []byte) (int, error) {
+func sumValidEntries(input []byte) (int, error) {
 	validEntries := entryRegex.FindAll(input, -1)
 
 	var total int
@@ -47,6 +48,21 @@ func multiplyNumbers(input []byte) (int, error) {
 	return total, nil
 }
 
+func sumOnlyActiveEntries(input []byte) (int, error) {
+	activeSubStrings := activeSubStringRegex.FindAll(input, -1)
+
+	var total int
+	for _, activeSubString := range activeSubStrings {
+		sum, err := sumValidEntries(activeSubString)
+		if err != nil {
+			return 0, err
+		}
+		total += sum
+	}
+
+	return total, nil
+}
+
 func main() {
 	input, err := os.ReadFile("input")
 	if err != nil {
@@ -54,11 +70,18 @@ func main() {
 		return
 	}
 
-	product, err := multiplyNumbers(input)
+	partOneResponse, err := sumValidEntries(input)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Fatal error:", err)
 		os.Exit(1)
 	}
 
-	fmt.Printf("Part 1 - Total of all valid entries: %d\n", product)
+	partTwoResponse, err := sumOnlyActiveEntries(input)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "Fatal error:", err)
+		os.Exit(1)
+	}
+
+	fmt.Printf("Part 1 - Total of all valid entries: %d\n", partOneResponse)
+	fmt.Printf("Part 2 - Total of all valid and active entries: %d\n", partTwoResponse)
 }

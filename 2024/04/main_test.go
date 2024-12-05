@@ -15,13 +15,10 @@ func TestCountOccurences(t *testing.T) {
 		[]byte("MAMMMXMMMM"),
 		[]byte("MXMXAXMASX"),
 	}
-	exampleTerm := "XMAS"
+	exampleTerm := []byte("XMAS")
 	expected := 18
 
-	got, err := countOccurences(exampleData, exampleTerm)
-	if err != nil {
-		t.Errorf("Unexpected error in countOccurences(). Original: %v", err)
-	}
+	got := countOccurrences(exampleData, exampleTerm)
 
 	if got != expected {
 		t.Errorf("got: %v, expected %v", got, expected)

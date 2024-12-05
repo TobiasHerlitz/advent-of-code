@@ -22,8 +22,12 @@ var directions = map[string]coordinateShift{
 	"northwest": {x: -1, y: 1},
 }
 
-func inBounds(characterGrid [][]byte, x int, y int) bool {
-	return x >= 0 && x < len(characterGrid) && y >= 0 && y < len(characterGrid[x])
+func readCharacter(characterGrid [][]byte, x int, y int) (byte, error) {
+	if x < 0 || x > len(characterGrid)-1 || y < 0 || y > len(characterGrid[x])-1 {
+		return 0, fmt.Errorf("coordinate [%d:%d] is out of bounds", x, y)
+	}
+
+	return characterGrid[x][y], nil
 }
 
 func searchDirection(characterGrid [][]byte, term []byte, x int, y int, coordinateShift coordinateShift) bool {
@@ -31,11 +35,12 @@ func searchDirection(characterGrid [][]byte, term []byte, x int, y int, coordina
 		return true
 	}
 
-	if !inBounds(characterGrid, x, y) {
+	gridChar, err := readCharacter(characterGrid, x, y)
+	if err != nil {
 		return false
 	}
 
-	if term[0] == characterGrid[x][y] {
+	if term[0] == gridChar {
 		return searchDirection(characterGrid, term[1:], x+coordinateShift.x, y+coordinateShift.y, coordinateShift)
 	}
 
@@ -67,6 +72,67 @@ func countOccurrences(characterGrid [][]byte, term []byte) int {
 	return total
 }
 
+func isValidPair(charOne byte, charTwo byte) bool {
+	if charOne != 'M' && charOne != 'S' {
+		return false
+	}
+
+	if charTwo != 'M' && charTwo != 'S' {
+		return false
+	}
+
+	if charOne == charTwo {
+		return false
+	}
+
+	return true
+}
+
+func findXShapedMas(characterGrid [][]byte, x int, y int) bool {
+	if characterGrid[x][y] != 'A' {
+		return false
+	}
+
+	upRightChar, err := readCharacter(characterGrid, x+1, y+1)
+	if err != nil {
+		return false
+	}
+
+	downRightChar, err := readCharacter(characterGrid, x+1, y-1)
+	if err != nil {
+		return false
+	}
+
+	upLeftChar, err := readCharacter(characterGrid, x-1, y+1)
+	if err != nil {
+		return false
+	}
+
+	downLeftChar, err := readCharacter(characterGrid, x-1, y-1)
+	if err != nil {
+		return false
+	}
+
+	if !isValidPair(upRightChar, downLeftChar) || !isValidPair(upLeftChar, downRightChar) {
+		return false
+	}
+
+	return true
+}
+
+func countXShapedMasOccurences(characterGrid [][]byte) int {
+	total := 0
+
+	for x := 0; x < len(characterGrid); x++ {
+		for y := 0; y < len(characterGrid[0]); y++ {
+			if findXShapedMas(characterGrid, x, y) {
+				total++
+			}
+		}
+	}
+	return total
+}
+
 func main() {
 	input, err := os.ReadFile("input")
 	if err != nil {
@@ -77,8 +143,7 @@ func main() {
 	characterGrid := bytes.Split(input, []byte("\n"))
 
 	term := []byte("XMAS")
-	occurences := countOccurrences(characterGrid, term)
 
-	fmt.Printf("Part 1 - Times 'XMAS' occurs: %d\n", occurences)
-	// fmt.Printf("Part 2 - Total of all valid and active entries: %d\n", )
+	fmt.Printf("Part 1 - Times 'XMAS' occurs: %d\n", countOccurrences(characterGrid, term))
+	fmt.Printf("Part 2 - Times x shaped 'mas' occurs: %d\n", countXShapedMasOccurences(characterGrid))
 }

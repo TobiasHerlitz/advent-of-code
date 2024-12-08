@@ -77,13 +77,13 @@ func parseInput(input string) (Rules, []PageNumbers, error) {
 
 func isValid(rules Rules, pageNumbers PageNumbers) bool {
 	for index, pageNumber := range pageNumbers {
-		_, found := rules[pageNumber]
+		disallowedInts, found := rules[pageNumber]
 		if !found {
 			continue
 		}
 
 		for _, previousPageNumber := range pageNumbers[:index] {
-			if slices.Contains(rules[pageNumber], previousPageNumber) {
+			if slices.Contains(disallowedInts, previousPageNumber) {
 				return false
 			}
 		}
@@ -92,15 +92,52 @@ func isValid(rules Rules, pageNumbers PageNumbers) bool {
 	return true
 }
 
-// Sums the middle page value from each valid page update
-func sumValidPageUpdates(rules Rules, pageUpdates []PageNumbers) int {
-	total := 0
+/*
+Does one pass and shifts. Returns if valid, else does it again.
+Might get stuck if the pageNumbers can't be fixed but I'm so done
+with this assignment and this works for the provided input
+*/
+func toRectifiedPageNumbers(rules Rules, pageNumbers PageNumbers) PageNumbers {
+	var rectifiedPageNumbers PageNumbers
+
+	for index, pageNumber := range pageNumbers {
+
+		disallowedInts, found := rules[pageNumber]
+		rectifiedPageNumbers = append(rectifiedPageNumbers, pageNumbers[index])
+		if !found || index == 0 {
+			continue
+		}
+
+		for rectifiedIndex, previousPageNumber := range rectifiedPageNumbers {
+			if slices.Contains(disallowedInts, previousPageNumber) {
+				rectifiedPageNumbers[rectifiedIndex] = pageNumbers[index]
+				rectifiedPageNumbers[index] = previousPageNumber
+				break
+			}
+		}
+
+	}
+
+	if isValid(rules, rectifiedPageNumbers) {
+		return rectifiedPageNumbers
+	}
+	return toRectifiedPageNumbers(rules, rectifiedPageNumbers)
+}
+
+func sumMiddlePageNumbers(rules Rules, pageUpdates []PageNumbers) (int, int) {
+	sumFromValid := 0
+	sumFromRectified := 0
 	for _, pageNumbers := range pageUpdates {
 		if isValid(rules, pageNumbers) {
-			total += pageNumbers[len(pageNumbers)/2]
+			sumFromValid += pageNumbers[len(pageNumbers)/2]
+			continue
 		}
+
+		rectifiedPageNumbers := toRectifiedPageNumbers(rules, pageNumbers)
+		sumFromRectified += rectifiedPageNumbers[len(rectifiedPageNumbers)/2]
 	}
-	return total
+
+	return sumFromValid, sumFromRectified
 }
 
 func main() {
@@ -116,5 +153,8 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Printf("Part 1 - Sum of middle page values from each valid page update: %d\n", sumValidPageUpdates(rules, pageUpdates))
+	sumFromValid, sumFromRectified := sumMiddlePageNumbers(rules, pageUpdates)
+
+	fmt.Printf("Part 1 - Sum of middle page values from each valid page update: %d\n", sumFromValid)
+	fmt.Printf("Part 2 - Sum of middle page values from each fixed page update: %d\n", sumFromRectified)
 }

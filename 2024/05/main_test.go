@@ -66,7 +66,7 @@ func TestParseInput(t *testing.T) {
 
 	gotOrderingRules, gotPageUpdates, err := parseInput(exampleData)
 	if err != nil {
-		t.Errorf("Unexpect error: %v", err)
+		t.Errorf("Unexpected error: %v", err)
 	}
 
 	if !reflect.DeepEqual(gotOrderingRules, expectRules) {

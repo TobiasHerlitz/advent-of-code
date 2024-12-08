@@ -52,7 +52,7 @@ func addRule(rules Rules, ruleInput string) error {
 	return nil
 }
 
-func parseInput(input string) (Rules, []PageNumbers) {
+func parseInput(input string) (Rules, []PageNumbers, error) {
 	rows := strings.Split(input, "\n")
 	var pageUpdates []PageNumbers
 	rules := make(map[int][]int)
@@ -60,7 +60,10 @@ func parseInput(input string) (Rules, []PageNumbers) {
 	for _, row := range rows {
 		ruleInput := orderingRuleRegex.FindString(row)
 		if ruleInput != "" {
-			addRule(rules, ruleInput)
+			err := addRule(rules, ruleInput)
+			if err != nil {
+				return nil, nil, err
+			}
 		}
 
 		pageNumbersInput := pageNumbersRegex.FindString(row)
@@ -69,7 +72,7 @@ func parseInput(input string) (Rules, []PageNumbers) {
 		}
 	}
 
-	return rules, pageUpdates
+	return rules, pageUpdates, nil
 }
 
 func isValid(rules Rules, pageNumbers PageNumbers) bool {
@@ -79,8 +82,8 @@ func isValid(rules Rules, pageNumbers PageNumbers) bool {
 			continue
 		}
 
-		for _, laterPageNumber := range pageNumbers[:index] {
-			if slices.Contains(rules[pageNumber], laterPageNumber) {
+		for _, previousPageNumber := range pageNumbers[:index] {
+			if slices.Contains(rules[pageNumber], previousPageNumber) {
 				return false
 			}
 		}
@@ -107,7 +110,11 @@ func main() {
 		return
 	}
 
-	rules, pageUpdates := parseInput(string(input))
+	rules, pageUpdates, err := parseInput(string(input))
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "Failed parsing input:", err)
+		os.Exit(1)
+	}
 
 	fmt.Printf("Part 1 - Sum of middle page values from each valid page update: %d\n", sumValidPageUpdates(rules, pageUpdates))
 }

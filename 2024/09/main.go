@@ -23,7 +23,7 @@ func (m memory) compact() {
 		m[firstEmptyIndex] = m[i]
 		m[i] = -1
 
-		firstEmptyIndex = m.findNextEmptyIndex(0)
+		firstEmptyIndex = m.findNextEmptyIndex(firstEmptyIndex)
 	}
 }
 

@@ -18,10 +18,19 @@ var exampleGrid = [][]rune{
 }
 
 func TestCountAntinodes(t *testing.T) {
-	got := countAntinodes(exampleGrid)
+	got := countAntinodes(exampleGrid, false)
 	expect := 14
 
 	if got != expect {
 		t.Errorf("Wrong number of antinodes. Got: %v. Expect: %v", got, expect)
+	}
+}
+
+func TestCountAntinodesWithEcho(t *testing.T) {
+	got := countAntinodes(exampleGrid, true)
+	expect := 34
+
+	if got != expect {
+		t.Errorf("Wrong number of antinodes with echo. Got: %v. Expect: %v", got, expect)
 	}
 }

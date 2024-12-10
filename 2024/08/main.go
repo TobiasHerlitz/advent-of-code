@@ -9,7 +9,7 @@ func withinBounds(grid [][]rune, y int, x int) bool {
 	return x >= 0 && x < len(grid[0]) && y >= 0 && y < len(grid)
 }
 
-func antinodesFromAntenna(grid [][]rune, y int, x int) map[string]struct{} {
+func antinodesFromAntenna(grid [][]rune, y int, x int, withEcho bool) map[string]struct{} {
 	antenna := grid[y][x]
 	antinodes := make(map[string]struct{})
 	for opposingY, column := range grid {
@@ -18,11 +18,29 @@ func antinodesFromAntenna(grid [][]rune, y int, x int) map[string]struct{} {
 				continue
 			}
 
-			antinodeY := y - (opposingY - y)
-			antinodeX := x - (opposingX - x)
+			if withEcho {
+				antinodes[fmt.Sprintf("%v:%v", x, y)] = struct{}{}
+			}
 
-			if withinBounds(grid, antinodeY, antinodeX) {
+			deltaY := opposingY - y
+			deltaX := opposingX - x
+
+			antinodeY := y - deltaY
+			antinodeX := x - deltaX
+
+			for {
+				if !withinBounds(grid, antinodeY, antinodeX) {
+					break
+				}
+
 				antinodes[fmt.Sprintf("%v:%v", antinodeX, antinodeY)] = struct{}{}
+
+				antinodeY -= deltaY
+				antinodeX -= deltaX
+
+				if !withEcho {
+					break
+				}
 			}
 		}
 	}
@@ -30,12 +48,12 @@ func antinodesFromAntenna(grid [][]rune, y int, x int) map[string]struct{} {
 	return antinodes
 }
 
-func countAntinodes(grid [][]rune) int {
+func countAntinodes(grid [][]rune, withEcho bool) int {
 	antinodes := make(map[string]struct{})
 	for y, column := range grid {
 		for x, cell := range column {
 			if cell != '.' {
-				newAntinodes := antinodesFromAntenna(grid, y, x)
+				newAntinodes := antinodesFromAntenna(grid, y, x, withEcho)
 				for key := range newAntinodes {
 					antinodes[key] = struct{}{}
 				}
@@ -53,6 +71,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Printf("Part 1 - Number of antinodes: %v\n", countAntinodes(grid))
-	// fmt.Printf("Part 2 - : %v\n", )
+	fmt.Printf("Part 1 - Number of antinodes: %v\n", countAntinodes(grid, false))
+	fmt.Printf("Part 2 - Number of antinodes with echo: %v\n", countAntinodes(grid, true))
+
 }

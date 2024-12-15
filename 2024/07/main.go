@@ -94,6 +94,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Printf("Part 1 - Sum of valid answers: %v\n", sumOfValidAnswers)                  // 5540634308362
-	fmt.Printf("Part 2 - Sum of valid answers: %v\n", sumOfValidAnswersWithConcatenation) // 472290821152397
+	fmt.Printf("Part 1 - Sum of valid answers: %v\n", sumOfValidAnswers)
+	fmt.Printf("Part 2 - Sum of valid answers: %v\n", sumOfValidAnswersWithConcatenation)
 }

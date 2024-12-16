@@ -32,23 +32,32 @@ func findStartingPoints(grid helper.Grid) []helper.Coordinate {
 	return startingPoints
 }
 
-func walkTrails(grid helper.Grid, position helper.Coordinate, uniqueEndpoints map[helper.Coordinate]struct{}) {
+func walkTrails(grid helper.Grid, position helper.Coordinate, endpoints *[]helper.Coordinate) {
 	cell, err := grid.ReadCell(position)
 	if err != nil {
 		return
 	}
 
 	if cell == 9 {
-		uniqueEndpoints[position] = Empty
+		*endpoints = append(*endpoints, position)
 	}
 
 	for _, direction := range directions {
 		neighbor := helper.Coordinate{X: position.X + direction.X, Y: position.Y + direction.Y}
 		neighborCell, err := grid.ReadCell(neighbor)
 		if err == nil && neighborCell == cell+1 {
-			walkTrails(grid, neighbor, uniqueEndpoints)
+			walkTrails(grid, neighbor, endpoints)
 		}
 	}
+}
+
+func toUnique(endpoints []helper.Coordinate) map[helper.Coordinate]struct{} {
+	uniqueEndpoints := make(map[helper.Coordinate]struct{})
+	for _, endpoint := range endpoints {
+		uniqueEndpoints[endpoint] = Empty
+	}
+
+	return uniqueEndpoints
 }
 
 func main() {
@@ -59,12 +68,15 @@ func main() {
 	}
 
 	startingPoints := findStartingPoints(grid)
-	totalEndpointsReached := 0
+	totalEndpoints := 0
+	totalTrails := 0
 	for _, startingPoint := range startingPoints {
-		uniqueEndpoints := make(map[helper.Coordinate]struct{})
-		walkTrails(grid, startingPoint, uniqueEndpoints)
-		totalEndpointsReached += len(uniqueEndpoints)
+		endpoints := []helper.Coordinate{}
+		walkTrails(grid, startingPoint, &endpoints)
+		totalTrails += len(endpoints)
+		totalEndpoints += len(toUnique(endpoints))
 	}
 
-	fmt.Printf("Part 1 - Total score of all trailheads is: %v\n", totalEndpointsReached)
+	fmt.Printf("Part 1 - Total score of all trailheads is: %v\n", totalEndpoints)
+	fmt.Printf("Part 2 - Total score of all trailheads is: %v\n", totalTrails)
 }

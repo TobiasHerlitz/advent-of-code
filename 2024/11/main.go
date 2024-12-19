@@ -3,31 +3,24 @@ package main
 import (
 	"fmt"
 	"os"
-	"slices"
 	"strconv"
 )
 
-type Stones []int
+type Stones map[int]int
 
-func hasEvenDigits(num int) bool {
-	if num == 0 {
-		return true
-	}
-
-	return len(strconv.Itoa(num))%2 == 0
-}
-
-// blink modifies the stones based on the following rules
+// blink modifies the stones based on the following rules:
 // Replaces 0 with 1
 // Splits numbers with even number of digits into two stones
 // Else multiplies original by 2024
 func (s *Stones) blink() error {
-	for i := 0; i < len(*s); i++ {
+	changes := make(Stones)
+	for number, occurences := range *s {
 		switch {
-		case (*s)[i] == 0:
-			(*s)[i] = 1
-		case hasEvenDigits((*s)[i]):
-			stoneStr := strconv.Itoa((*s)[i])
+		case number == 0:
+			changes[1] += occurences
+			changes[number] -= occurences
+		case getNumberOfDigits(number)%2 == 0:
+			stoneStr := strconv.Itoa(number)
 			leftStone, err := strconv.Atoi(stoneStr[:len(stoneStr)/2])
 			if err != nil {
 				return err
@@ -37,15 +30,18 @@ func (s *Stones) blink() error {
 			if err != nil {
 				return err
 			}
-
-			(*s)[i] = leftStone
-			*s = slices.Insert(*s, i+1, rightStone)
-			i++ // Skip newly inserted stone
+			changes[number] -= occurences
+			changes[leftStone] += occurences
+			changes[rightStone] += occurences
 		default:
-			(*s)[i] *= 2024
+			changes[number] -= occurences
+			changes[number*2024] += occurences
 		}
 	}
 
+	for number, change := range changes {
+		(*s)[number] += change
+	}
 	return nil
 }
 
@@ -60,13 +56,49 @@ func (s *Stones) blinkTimes(times int) error {
 	return nil
 }
 
+func (s *Stones) countStones() int {
+	count := 0
+	for _, occurences := range *s {
+		count += occurences
+	}
+
+	return count
+}
+
+func getNumberOfDigits(num int) int {
+	numberOfDigits := 1
+	for num > 9 {
+		num /= 10
+		numberOfDigits++
+	}
+
+	return numberOfDigits
+}
+
 func main() {
-	stones := Stones{0, 5601550, 3914, 852, 50706, 68, 6, 645371}
+	stones := Stones{
+		0:       1,
+		6:       1,
+		68:      1,
+		852:     1,
+		3914:    1,
+		50706:   1,
+		645371:  1,
+		5601550: 1,
+	}
+
 	err := stones.blinkTimes(25)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Error when blinking. Original:", err)
 		os.Exit(1)
 	}
 
-	fmt.Printf("Part 1 - Total number of stones after blinking 25 times is: %v\n", len(stones))
+	fmt.Printf("Part 1 - Total number of stones after blinking 25 times is: %v\n", stones.countStones())
+
+	err = stones.blinkTimes(50)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "Error when blinking. Original:", err)
+		os.Exit(1)
+	}
+	fmt.Printf("Part 2 - Total number of stones after blinking 75 times is: %v\n", stones.countStones())
 }
